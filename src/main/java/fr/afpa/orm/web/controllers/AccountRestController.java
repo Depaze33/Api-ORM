@@ -1,29 +1,16 @@
 package fr.afpa.orm.web.controllers;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
 import fr.afpa.orm.dto.AccountDto;
 import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.repositories.AccountRepository;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -32,7 +19,7 @@ public class AccountRestController {
     private final AccountRepository accountRepository;
 
     // Constructor injection with @Autowired annotation
-@Autowired
+    @Autowired
     public AccountRestController(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
@@ -44,24 +31,48 @@ public class AccountRestController {
 
     /**
      * TODO implémenter une méthode qui traite les requêtes GET et qui renvoie une liste de comptes
-     *
+     * <p>
      * Attention, il manque peut être une annotation :)
      */
     @GetMapping
-    public List<Account> getAll() {
-        return (List<Account>) accountRepository.findAll();
+    public List<AccountDto> getAll() {
+        List<Account> accounts = accountRepository.findAll();
+        return accounts.stream()
+                .map(acc -> new AccountDto(
+                        acc.getId(),
+                        acc.getCreationTime(),
+                        acc.getBalance(),
+                        acc.getClient().getId()
+                ))
+                .collect(Collectors.toList());
+
     }
 
     /**
      * TODO implémenter une méthode qui traite les requêtes GET avec un identifiant "variable de chemin" et qui retourne les informations du compte associé
      * Plus d'informations sur les variables de chemin -> https://www.baeldung.com/spring-pathvariable
      */
-    @GetMapping
-    public ResponseEntity<Account> getOne(@PathVariable long id) {
-        return accountRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountDto> getAccountById(@PathVariable Long id) {
+        Optional<Account> account = accountRepository.findById(id);
+
+        if (account.isPresent()) {
+            Account acc = account.get();
+
+            // Conversion de l'entité Account en DTO
+            AccountDto accountDTO = new AccountDto(
+                    acc.getId(),
+                    acc.getCreationTime(),
+                    acc.getBalance(),
+                    acc.getClient().getId()
+            );
+
+            return ResponseEntity.ok(accountDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
 
     /**
      * TODO implémenter une méthode qui traite les requêtes POST
@@ -77,7 +88,7 @@ public class AccountRestController {
 
     /**
      * TODO implémenter une méthode qui traite les requêtes PUT
-     * 
+     * <p>
      * Attention de bien ajouter les annotations qui conviennent
      */
     @PutMapping
@@ -90,6 +101,7 @@ public class AccountRestController {
             // Mise à jour des champs fournis
             modifAccount.setCreationTime(account.getCreationTime());
             modifAccount.setBalance(account.getBalance());
+            modifAccount.setClient(account.getClient());
 
             // On ne met pas à jour l'ID ni la date de création (générés automatiquement lors de la création)
 
@@ -105,13 +117,13 @@ public class AccountRestController {
     }
 
     /**
-     * TODO implémenter une méthode qui traite les requêtes  DELETE 
+     * TODO implémenter une méthode qui traite les requêtes  DELETE
      * L'identifiant du compte devra être passé en "variable de chemin" (ou "path variable")
      * Dans le cas d'un suppression effectuée avec succès, le serveur doit retourner un status http 204 (No content)
-     * 
+     * <p>
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void delete(@PathVariable long id, HttpServletResponse response) {
         // TODO implémentation
     }

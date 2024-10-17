@@ -14,4 +14,4 @@ BEGIN
 END;
 $$;
 
-CALL create_accounts();
+-- CALL create_accounts();

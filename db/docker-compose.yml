@@ -16,6 +16,6 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - '5432:5432'
+      - '7863:5432'
     volumes:
       - ./dump/:/docker-entrypoint-initdb.d/

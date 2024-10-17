@@ -25,13 +25,18 @@ import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * TODO ajouter la/les annotations nécessaires pour faire de "AccountRestController" un contrôleur de REST API
- */
+
+@RestController
+@RequestMapping("/api/accounts")
 public class AccountRestController {
-    /** 
-     * TODO implémenter un constructeur
-     *  
+    private final AccountRepository accountRepository;
+
+    // Constructor injection with @Autowired annotation
+@Autowired
+    public AccountRestController(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
+    /**
      * TODO injecter {@link AccountRepository} en dépendance par injection via le constructeur
      * Plus d'informations -> https://keyboardplaying.fr/blogue/2021/01/spring-injection-constructeur/
      */
@@ -42,20 +47,20 @@ public class AccountRestController {
      *
      * Attention, il manque peut être une annotation :)
      */
+    @GetMapping
     public List<Account> getAll() {
-        // TODO récupération des compte provenant d'un repository
-       
-        // TODO renvoyer les objets de la classe "Account"
-        return null;
+        return (List<Account>) accountRepository.findAll();
     }
 
     /**
      * TODO implémenter une méthode qui traite les requêtes GET avec un identifiant "variable de chemin" et qui retourne les informations du compte associé
      * Plus d'informations sur les variables de chemin -> https://www.baeldung.com/spring-pathvariable
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<????> getOne(@PathVariable long id) {
-        // TODO compléter le code
+    @GetMapping
+    public ResponseEntity<Account> getOne(@PathVariable long id) {
+        return accountRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -65,9 +70,9 @@ public class AccountRestController {
      * Le serveur devrai retourner un code http de succès (201 Created)
      **/
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ???? create(@RequestBody Account account) {
-        // TODO compléter le code
+    public ResponseEntity<Account> postAccount(@RequestBody Account account) {
+        Account savedAccount = accountRepository.save(account);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedAccount);
     }
 
     /**
@@ -75,8 +80,32 @@ public class AccountRestController {
      * 
      * Attention de bien ajouter les annotations qui conviennent
      */
-    public void update(@PathVariable long id, @RequestBody Account account) {
-        // TODO Compléter le code
+    @PutMapping
+    public ResponseEntity<Account> update(@PathVariable Long id, @RequestBody Account account) {
+        Optional<Account> existingAccount = accountRepository.findById(id);
+
+        if (existingAccount.isPresent()) {
+            Account modifAccount = existingAccount.get();
+
+            // Mise à jour des champs fournis
+            modifAccount.setLastName(account.getLastName());
+            modifAccount.setFirstName(account.getFirstName());
+            modifAccount.setEmail(account.getEmail());
+            modifAccount.setBirthDate(account.getBirthDate());
+            modifAccount.setCreationTime(account.getCreationTime());
+            modifAccount.setBalance(account.getBalance());
+
+            // On ne met pas à jour l'ID ni la date de création (générés automatiquement lors de la création)
+
+            // Sauvegarde du compte modifié
+            accountRepository.save(modifAccount);
+
+            // Retourne le compte modifié avec un status 200 OK
+            return ResponseEntity.ok(modifAccount);
+        } else {
+            // Retourne une réponse 404 si le compte avec l'ID donné n'est pas trouvé
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -86,7 +115,8 @@ public class AccountRestController {
      * 
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
-    public void remove(@PathVariable long id, HttpServletResponse response) {
+    @DeleteMapping
+    public void delete(@PathVariable long id, HttpServletResponse response) {
         // TODO implémentation
     }
 }

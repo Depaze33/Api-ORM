@@ -88,7 +88,6 @@ public class AccountRestController {
             Account modifAccount = existingAccount.get();
 
             // Mise à jour des champs fournis
-
             modifAccount.setCreationTime(account.getCreationTime());
             modifAccount.setBalance(account.getBalance());
 

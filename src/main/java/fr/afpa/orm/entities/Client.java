@@ -18,7 +18,6 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="client")
 public class Client {
-
     /**
      * Identifiant unique de l'utilisateur
      * Article présentant l'utilisation d'UUID -> https://www.baeldung.com/java-hibernate-uuid-primary-key
@@ -51,8 +50,8 @@ public class Client {
     /**
      * Association de type "OneToMany" : une personne peut avoir plusieurs comptes
      */
-    @JsonIgnore
-    @OneToMany(targetEntity = Account.class, mappedBy = "owner")
+
+    @OneToMany(targetEntity = Account.class, mappedBy = "client")
     private List<Account> accounts;
 
     public Client() {

@@ -1,16 +1,15 @@
 package fr.afpa.orm.web.controllers;
 
 
-import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.entities.Client;
 import fr.afpa.orm.repositories.ClientRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/client")
@@ -18,12 +17,18 @@ public class ClientRestController {
 
     private final ClientRepository clientRepository;
     @Autowired
-    public ClientRestController(ClientRepository clientRepository, ClientRepository clientRepository1) {
+    public ClientRestController(ClientRepository clientRepository) {
 
         this.clientRepository = clientRepository;
     }
+
     @GetMapping
-    public ResponseEntity<Client> getOne(@PathVariable long id) {
+    public Iterable<Client> getAll() {
+        return clientRepository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Client> getOne(@PathVariable UUID id) {
         return clientRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -46,8 +51,8 @@ public class ClientRestController {
      *
      * Attention de bien ajouter les annotations qui conviennent
      */
-    @PutMapping
-    public ResponseEntity<Client> update(@PathVariable Long id, @RequestBody Client client) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Client> update(@PathVariable UUID id, @RequestBody Client client) {
         Optional<Client> existingAccount = clientRepository.findById(id);
 
         if (existingAccount.isPresent()) {
@@ -58,7 +63,7 @@ public class ClientRestController {
             modifClient.setFirstName(client.getFirstName());
             modifClient.setEmail(client.getEmail());
             modifClient.setBirthdate(client.getBirthdate());
-
+            modifClient.setAccounts(client.getAccounts());
 
             // On ne met pas à jour l'ID ni la date de création (générés automatiquement lors de la création)
 
@@ -81,7 +86,7 @@ public class ClientRestController {
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable long id) {
+    public ResponseEntity<Void> deleteAccount(@PathVariable UUID id) {
         return clientRepository.findById(id)
                 .map(client -> {
                     clientRepository.delete(client);

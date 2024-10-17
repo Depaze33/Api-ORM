@@ -88,10 +88,7 @@ public class AccountRestController {
             Account modifAccount = existingAccount.get();
 
             // Mise à jour des champs fournis
-            modifAccount.setLastName(account.getLastName());
-            modifAccount.setFirstName(account.getFirstName());
-            modifAccount.setEmail(account.getEmail());
-            modifAccount.setBirthDate(account.getBirthDate());
+
             modifAccount.setCreationTime(account.getCreationTime());
             modifAccount.setBalance(account.getBalance());
 

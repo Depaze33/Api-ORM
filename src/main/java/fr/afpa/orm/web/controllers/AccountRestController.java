@@ -2,7 +2,9 @@ package fr.afpa.orm.web.controllers;
 
 import fr.afpa.orm.dto.AccountDto;
 import fr.afpa.orm.entities.Account;
+import fr.afpa.orm.entities.Client;
 import fr.afpa.orm.repositories.AccountRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -38,15 +41,15 @@ public class AccountRestController {
     public List<AccountDto> getAll() {
         List<Account> accounts = accountRepository.findAll();
         return accounts.stream()
-                .map(acc -> new AccountDto(
-                        acc.getId(),
-                        acc.getCreationTime(),
-                        acc.getBalance(),
-                        acc.getClient().getId()
+                .map(account -> new AccountDto(
+                        account.getId(),
+                        account.getCreationTime(),
+                        account.getBalance(),
+                        account.getClient().getId()  // On récupère uniquement l'ID du client
                 ))
                 .collect(Collectors.toList());
-
     }
+
 
     /**
      * TODO implémenter une méthode qui traite les requêtes GET avec un identifiant "variable de chemin" et qui retourne les informations du compte associé
@@ -59,12 +62,11 @@ public class AccountRestController {
         if (account.isPresent()) {
             Account acc = account.get();
 
-            // Conversion de l'entité Account en DTO
             AccountDto accountDTO = new AccountDto(
                     acc.getId(),
                     acc.getCreationTime(),
                     acc.getBalance(),
-                    acc.getClient().getId()
+                    acc.getClient() != null ? acc.getClient().getId() : null  // clientId est de type UUID
             );
 
             return ResponseEntity.ok(accountDTO);
@@ -74,6 +76,7 @@ public class AccountRestController {
     }
 
 
+
     /**
      * TODO implémenter une méthode qui traite les requêtes POST
      * Cette méthode doit recevoir les informations d'un compte en tant que "request body", elle doit sauvegarder le compte en mémoire et retourner ses informations (en json)
@@ -81,17 +84,34 @@ public class AccountRestController {
      * Le serveur devrai retourner un code http de succès (201 Created)
      **/
     @PostMapping
-    public ResponseEntity<Account> postAccount(@RequestBody Account account) {
+    public ResponseEntity<AccountDto> postAccount(@RequestBody AccountDto accountDto) {
+        Account account = new Account();
+        account.setCreationTime(accountDto.getCreationTime());
+        account.setBalance(accountDto.getBalance());
+
+        Client client = new Client();
+        client.setId(accountDto.getClientId());  // On assigne simplement l'ID du client
+        account.setClient(client);
+
         Account savedAccount = accountRepository.save(account);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedAccount);
+
+        AccountDto savedAccountDto = new AccountDto(
+                savedAccount.getId(),
+                savedAccount.getCreationTime(),
+                savedAccount.getBalance(),
+                savedAccount.getClient().getId()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedAccountDto);
     }
+
 
     /**
      * TODO implémenter une méthode qui traite les requêtes PUT
      * <p>
      * Attention de bien ajouter les annotations qui conviennent
      */
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<Account> update(@PathVariable Long id, @RequestBody Account account) {
         Optional<Account> existingAccount = accountRepository.findById(id);
 
@@ -124,7 +144,12 @@ public class AccountRestController {
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable long id, HttpServletResponse response) {
-        // TODO implémentation
+    public ResponseEntity<Void> deleteAccount(@PathVariable long id) {
+        return accountRepository.findById(id)
+                .map(account -> {
+                    accountRepository.delete(account);
+                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

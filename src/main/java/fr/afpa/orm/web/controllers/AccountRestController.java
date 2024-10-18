@@ -112,29 +112,38 @@ public class AccountRestController {
      * Attention de bien ajouter les annotations qui conviennent
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Account> update(@PathVariable Long id, @RequestBody Account account) {
+    public ResponseEntity<AccountDto> update(@PathVariable Long id, @RequestBody AccountDto accountDto) {
         Optional<Account> existingAccount = accountRepository.findById(id);
 
         if (existingAccount.isPresent()) {
             Account modifAccount = existingAccount.get();
 
             // Mise à jour des champs fournis
-            modifAccount.setCreationTime(account.getCreationTime());
-            modifAccount.setBalance(account.getBalance());
-            modifAccount.setClient(account.getClient());
+            modifAccount.setCreationTime(accountDto.getCreationTime());
+            modifAccount.setBalance(accountDto.getBalance());
 
-            // On ne met pas à jour l'ID ni la date de création (générés automatiquement lors de la création)
+            // Gestion de la relation Client
+            Client client = new Client();
+            client.setId(accountDto.getClientId());
+            modifAccount.setClient(client);
 
             // Sauvegarde du compte modifié
-            accountRepository.save(modifAccount);
+            Account updatedAccount = accountRepository.save(modifAccount);
 
-            // Retourne le compte modifié avec un status 200 OK
-            return ResponseEntity.ok(modifAccount);
+            // Retourne le DTO mis à jour
+            AccountDto updatedAccountDto = new AccountDto(
+                    updatedAccount.getId(),
+                    updatedAccount.getCreationTime(),
+                    updatedAccount.getBalance(),
+                    updatedAccount.getClient().getId()
+            );
+
+            return ResponseEntity.ok(updatedAccountDto);
         } else {
-            // Retourne une réponse 404 si le compte avec l'ID donné n'est pas trouvé
             return ResponseEntity.notFound().build();
         }
     }
+
 
     /**
      * TODO implémenter une méthode qui traite les requêtes  DELETE
@@ -144,12 +153,20 @@ public class AccountRestController {
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable long id) {
+    public ResponseEntity<AccountDto> deleteAccount(@PathVariable long id) {
         return accountRepository.findById(id)
                 .map(account -> {
+                    AccountDto accountDto = new AccountDto(
+                            account.getId(),
+                            account.getCreationTime(),
+                            account.getBalance(),
+                            account.getClient() != null ? account.getClient().getId() : null
+                    );
+
                     accountRepository.delete(account);
-                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+                    return ResponseEntity.ok(accountDto);  // Retourne le DTO du compte supprimé
                 })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElse(ResponseEntity.notFound().build());
     }
+
 }

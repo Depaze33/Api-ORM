@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 @Repository
 public interface ClientRepository extends CrudRepository<Client, UUID>{
-
+    Optional<Client> findById(UUID id);
 
 
 

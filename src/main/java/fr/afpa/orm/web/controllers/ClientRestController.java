@@ -1,38 +1,73 @@
 package fr.afpa.orm.web.controllers;
 
 
+import fr.afpa.orm.dto.AccountDto;
+import fr.afpa.orm.dto.ClientDTO;
+import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.entities.Client;
+import fr.afpa.orm.repositories.AccountRepository;
 import fr.afpa.orm.repositories.ClientRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/client")
 public class ClientRestController {
 
     private final ClientRepository clientRepository;
+    private final AccountRepository accountRepository;
+
     @Autowired
-    public ClientRestController(ClientRepository clientRepository) {
+    public ClientRestController(ClientRepository clientRepository, AccountRepository accountRepository) {
 
         this.clientRepository = clientRepository;
+        this.accountRepository = accountRepository;
     }
 
+
     @GetMapping
-    public Iterable<Client> getAll() {
-        return clientRepository.findAll();
+    @Transactional  // Assure que la session Hibernate est active pour charger les comptes
+    public List<ClientDTO> getAll() {
+        List<Client> clients = (List<Client>) clientRepository.findAll();
+        return clients.stream()
+                .map(client -> new ClientDTO(
+                        client.getId(),
+                        client.getFirstName(),
+                        client.getLastName(),
+                        client.getEmail(),
+                        client.getBirthdate()// Ceci devrait maintenant être initialisé
+                ))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Client> getOne(@PathVariable UUID id) {
-        return clientRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ClientDTO> obtenirCompteParId(@PathVariable UUID id) {
+        Optional<Client> clients = clientRepository.findById(id);
+
+        if (clients.isPresent()) {
+            Client client = clients.get();
+
+            ClientDTO clientDTO = new ClientDTO(
+                    client.getId(),
+                    client.getFirstName(),
+                    client.getLastName(),
+                    client.getEmail(),
+                    client.getBirthdate()
+            );
+            return ResponseEntity.ok(clientDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
 
     /**
      * TODO implémenter une méthode qui traite les requêtes POST
@@ -63,7 +98,6 @@ public class ClientRestController {
             modifClient.setFirstName(client.getFirstName());
             modifClient.setEmail(client.getEmail());
             modifClient.setBirthdate(client.getBirthdate());
-            modifClient.setAccounts(client.getAccounts());
 
             // On ne met pas à jour l'ID ni la date de création (générés automatiquement lors de la création)
 

@@ -1,7 +1,11 @@
 package fr.afpa.orm.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
+@Entity
 public class Insurance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -10,14 +14,23 @@ public class Insurance {
     @Column(name = "name")
     private String name;
 
-    @JoinTable(name = "subscribe")
-    @ManyToMany(targetEntity = Client.class)
-    private Client client;
+    //a reactivé si besoin des clients
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "subscribe",
+            joinColumns = @JoinColumn(name = "insurance_id"),
+            inverseJoinColumns = @JoinColumn(name = "client_id")
+    )
+    private Set<Client> clients = new HashSet<>();
 
-    public Insurance(Long id, String name, Client client) {
+    public Insurance(Long id, String name, Set<Client> clients) {
         this.id = id;
         this.name = name;
-        this.client = client;
+        this.clients = clients;
+    }
+
+    public Insurance() {
     }
 
     public Long getId() {
@@ -36,11 +49,11 @@ public class Insurance {
         this.name = name;
     }
 
-    public Client getClient() {
-        return client;
+    public Set<Client> getClients() {
+        return clients;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setClients(Set<Client> clients) {
+        this.clients = clients;
     }
 }

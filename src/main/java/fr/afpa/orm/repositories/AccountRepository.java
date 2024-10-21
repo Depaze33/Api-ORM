@@ -1,11 +1,9 @@
 package fr.afpa.orm.repositories;
 
+import fr.afpa.orm.entities.Account;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import fr.afpa.orm.entities.Account;
-
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,9 +11,8 @@ import java.util.Optional;
  * Tutoriel -> https://www.geeksforgeeks.org/spring-boot-crudrepository-with-example/
  */
 @Repository
-public interface AccountRepository extends CrudRepository<Account, Long>{
+public interface AccountRepository extends CrudRepository<Account, Long> {
 
-    List<Account> findAll();
 
     /**
      * @param id Identifiant du compte à retrouver
@@ -25,6 +22,7 @@ public interface AccountRepository extends CrudRepository<Account, Long>{
 
     /**
      * Enregistre les informations d'un compte
+     *
      * @param account Le compte à enregistrer
      * @return L'objet enregistré
      */
@@ -32,10 +30,10 @@ public interface AccountRepository extends CrudRepository<Account, Long>{
 
     /**
      * Suppression d'un compte
+     *
      * @param account
      */
     void delete(Account account);
-
 
 
 }

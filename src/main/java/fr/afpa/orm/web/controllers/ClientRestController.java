@@ -1,11 +1,8 @@
 package fr.afpa.orm.web.controllers;
 
 
-import fr.afpa.orm.dto.AccountDto;
 import fr.afpa.orm.dto.ClientDTO;
-import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.entities.Client;
-import fr.afpa.orm.repositories.AccountRepository;
 import fr.afpa.orm.repositories.ClientRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +20,13 @@ import java.util.stream.Collectors;
 public class ClientRestController {
 
     private final ClientRepository clientRepository;
-    private final AccountRepository accountRepository;
+
 
     @Autowired
-    public ClientRestController(ClientRepository clientRepository, AccountRepository accountRepository) {
+    public ClientRestController(ClientRepository clientRepository) {
 
         this.clientRepository = clientRepository;
-        this.accountRepository = accountRepository;
+
     }
 
 
@@ -43,7 +40,9 @@ public class ClientRestController {
                         client.getFirstName(),
                         client.getLastName(),
                         client.getEmail(),
-                        client.getBirthdate()// Ceci devrait maintenant être initialisé
+                        client.getBirthdate(),
+                        client.getInsurances()// Ceci devrait maintenant être initialisé
+
                 ))
                 .collect(Collectors.toList());
     }
@@ -81,9 +80,14 @@ public class ClientRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
     }
 
+    @PostMapping
+    public ResponseEntity<Client> postAccount(@RequestBody ClientDTO clientDTO) {
+
+    }
+
     /**
      * TODO implémenter une méthode qui traite les requêtes PUT
-     *
+     * <p>
      * Attention de bien ajouter les annotations qui conviennent
      */
     @PutMapping("/{id}")
@@ -116,7 +120,7 @@ public class ClientRestController {
      * TODO implémenter une méthode qui traite les requêtes  DELETE
      * L'identifiant du compte devra être passé en "variable de chemin" (ou "path variable")
      * Dans le cas d'un suppression effectuée avec succès, le serveur doit retourner un status http 204 (No content)
-     *
+     * <p>
      * Il est possible de modifier la réponse du serveur en utilisant la méthode "setStatus" de la classe HttpServletResponse pour configurer le message de réponse du serveur
      */
     @DeleteMapping("/{id}")

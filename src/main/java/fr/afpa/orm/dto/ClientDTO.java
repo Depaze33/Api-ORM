@@ -1,9 +1,10 @@
 package fr.afpa.orm.dto;
 
-import fr.afpa.orm.entities.Account;
+import fr.afpa.orm.entities.Insurance;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ClientDTO {
@@ -15,20 +16,19 @@ public class ClientDTO {
     private LocalDate birthdate;
     private List<AccountDto> accounts;
 
-    public ClientDTO() {
+    public ClientDTO(UUID id, String firstName, String lastName, String email, LocalDate birthdate, Set<Insurance> insurances) {
         // Constructeur vide
     }
 
-    public ClientDTO(UUID id, String firstName, String lastName, String email, LocalDate birthdate ) {
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    this.birthdate = birthdate;
+    public ClientDTO(UUID id, String firstName, String lastName, String email, LocalDate birthdate) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.birthdate = birthdate;
 
 
     }
-
 
 
     // Getters et setters

@@ -4,7 +4,6 @@ import fr.afpa.orm.dto.AccountDto;
 import fr.afpa.orm.entities.Account;
 import fr.afpa.orm.entities.Client;
 import fr.afpa.orm.repositories.AccountRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -39,7 +37,8 @@ public class AccountRestController {
      */
     @GetMapping
     public List<AccountDto> getAll() {
-        List<Account> accounts = accountRepository.findAll();
+        List<Account> accounts = (List<Account>) accountRepository.findAll();
+
         return accounts.stream()
                 .map(account -> new AccountDto(
                         account.getId(),
@@ -74,7 +73,6 @@ public class AccountRestController {
             return ResponseEntity.notFound().build();
         }
     }
-
 
 
     /**

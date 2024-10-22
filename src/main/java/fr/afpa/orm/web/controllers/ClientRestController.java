@@ -80,10 +80,10 @@ public class ClientRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
     }
 
-    @PostMapping
-    public ResponseEntity<Client> postAccount(@RequestBody ClientDTO clientDTO) {
-
-    }
+//    @PostMapping
+//    public ResponseEntity<Client> postAccount(@RequestBody ClientDTO clientDTO) {
+//
+//    }
 
     /**
      * TODO implémenter une méthode qui traite les requêtes PUT
